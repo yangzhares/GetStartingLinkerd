@@ -1,0 +1,5 @@
+# OSX trash
+.DS_Store
+
+chapter2/.vagrant
+chapter3/.vagrant
