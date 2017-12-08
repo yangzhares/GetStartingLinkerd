@@ -1,6 +1,11 @@
 #!/bin/bash
 
-source _GenerateRandomPort.sh
+function rand(){
+    start=$1
+    end=$(($2-$start+1))
+    num=$(cat /dev/urandom | head -n 10 | cksum | awk -F ' ' '{print $1}')
+    echo $(($num%$end+$start))
+}
 
 PORT=$(rand 30000 65535)
 IP=$(ip addr show | grep eth1 | grep inet | awk '{print $2}' | cut -d'/' -f1)
