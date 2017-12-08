@@ -1,0 +1,55 @@
+admin:
+  port: 9990
+  ip: 0.0.0.0
+
+
+namers:
+- kind: io.l5d.consul
+  prefix: /io.l5d.consul
+  host: 127.0.0.1
+  port: 8500
+  includeTag: false
+  setHost: false
+  useHealthCheck: true
+
+routers:
+- protocol: http
+  label: outgoing
+  dtab: |
+    /consul => /#/io.l5d.consul/dc1;
+    /host   => /consul;
+    /svc    => /$/io.buoyant.http.subdomainOfPfx/service.consul/host;
+  interpreter:
+    kind: default
+    transformers:
+    # Instead of sending the request directly to the destination, send it to
+    # the linkerd (listening on port e.g:4141 running on the destination host.
+    - kind: io.l5d.port
+      port: 4141
+  httpAccessLog: /tmp/access_outgoing.log
+  servers:
+  - port: 4140
+    ip: 0.0.0.0
+
+- protocol: http
+  label: incoming
+  dtab: |
+   /consul => /#/io.l5d.consul/dc1;
+   /host   => /consul;
+   /svc    => /$/io.buoyant.http.subdomainOfPfx/service.consul/host;
+  interpreter:
+    kind: default
+    transformers:
+    # Instead of sending the request to a random destination instance, send it
+    # only to instances running on localhost.
+    - kind: io.l5d.localhost
+  servers:
+  - port: 4141
+    ip: 0.0.0.0
+
+telemetry:
+- kind: io.l5d.recentRequests
+  sampleRate: 0.01
+
+usage:
+  enabled: false
