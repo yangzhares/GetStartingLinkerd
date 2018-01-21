@@ -1,0 +1,25 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos/7"
+
+  # linkerd router on port 4140
+  config.vm.network "forwarded_port", guest: 4140, host: 4140
+  # linkerd admin on port 9990
+  config.vm.network "forwarded_port", guest: 9990, host: 9990
+  # namerd admin on port 9991
+  config.vm.network "forwarded_port", guest: 9991, host: 9991
+
+  config.vm.provision "shell", inline: <<-SHELL
+     # install docker engine
+     yum install -y docker
+     systemctl enable docker
+     systemctl start docker
+     # disable selinux
+     sed -i 's/^SELINUX=.*/SELINUX=permissive/g' /etc/selinux/config
+     # install tool sets
+     yum install -y wget telnet tree net-tools unzip
+  SHELL
+
+end
