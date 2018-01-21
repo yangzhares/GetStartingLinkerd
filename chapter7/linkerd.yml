@@ -1,0 +1,22 @@
+admin:
+  port: 9990
+  ip: 0.0.0.0
+
+routers:
+- protocol: http
+  label: outgoing
+  interpreter:
+    kind: io.l5d.namerd
+    dst: /$/inet/127.0.0.1/4100
+    namespace: default
+  httpAccessLog: /tmp/access_outgoing.log
+  servers:
+  - port: 4140
+    ip: 0.0.0.0
+
+telemetry:
+- kind: io.l5d.recentRequests
+  sampleRate: 0.01
+
+usage:
+  enabled: false
