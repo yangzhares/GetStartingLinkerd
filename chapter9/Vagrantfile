@@ -1,0 +1,31 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+LINKERD_COUNT = 2
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos/7"
+
+  (1..LINKERD_COUNT).each do |i|
+    config.vm.define "linkerd0#{i}" do |subconfig|
+      subconfig.vm.hostname = "linkerd0#{i}"
+      subconfig.vm.network :private_network, ip: "192.168.1.#{i + 10}"
+      # linkerd's port 9990 will be mapping to 9992,9993,9994 
+      subconfig.vm.network :forwarded_port, guest: 9990, host: "#{i + 9991}"
+      # namerd's port 9991 will be mapping to 9996,9997,9998
+      subconfig.vm.network :forwarded_port, guest: 9991, host: "#{i + 9995}"
+      subconfig.vm.network :forwarded_port, guest: 4140, host: "#{i + 4140}"
+    end
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+     # install docker engine
+     yum install -y docker
+     systemctl enable docker
+     systemctl start docker
+     # disable selinux
+     sed -i 's/^SELINUX=.*/SELINUX=permissive/g' /etc/selinux/config
+     # install tool sets
+     yum install -y wget telnet tree net-tools unzip
+  SHELL
+end
